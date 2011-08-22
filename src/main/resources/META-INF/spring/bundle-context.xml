@@ -11,4 +11,9 @@
     http://www.springframework.org/schema/util/spring-util.xsd">
 
 
+	<bean id="loadRdfToSailTaskFactory"
+		class="org.cytoscape.blueprints.graphdb.internal.sail.LoadRdfToSailTaskFactory">
+		<constructor-arg ref="cyApplicationConfigurationServiceRef" />
+	</bean>
+
 </beans>

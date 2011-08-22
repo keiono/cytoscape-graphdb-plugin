@@ -3,7 +3,18 @@
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:osgi="http://www.springframework.org/schema/osgi"
 	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd                                                                                                                         
                       http://www.springframework.org/schema/osgi http://www.springframework.org/schema/osgi/spring-osgi-1.0.xsd"
-	default-lazy-init="true">
+	default-lazy-init="false">
 
+
+	<osgi:reference id="cyApplicationConfigurationServiceRef" interface="org.cytoscape.application.CyApplicationConfiguration" />
+
+	<osgi:service id="loadRdfToSailTaskFactoryService" ref="loadRdfToSailTaskFactory"
+		interface="org.cytoscape.work.TaskFactory">
+		<osgi:service-properties>
+			<entry key="title" value="RDF from URL..." />
+			<entry key="preferredMenu" value="File.Import.Database" />
+			<entry key="menuGravity" value="2.0" />
+		</osgi:service-properties>
+	</osgi:service>
 
 </beans>
