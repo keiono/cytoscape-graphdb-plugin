@@ -1,1 +1,3 @@
 Graph database backend for Cytoscape 3.
+
+This project contains Tasks, Utilities, UI for manipulating Graph DB backend.
