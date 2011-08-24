@@ -11,9 +11,24 @@
     http://www.springframework.org/schema/util/spring-util.xsd">
 
 
+	<bean id="databaseManager" class="org.cytoscape.blueprints.graphdb.internal.sail.GraphDatabaseManagerImpl">
+		<constructor-arg ref="cyApplicationConfigurationServiceRef" />
+	</bean>
+	
+	<bean id="graphConverter" class="org.cytoscape.blueprints.graphdb.GraphConverterImpl">
+		<constructor-arg ref="networkFactoryServiceRef" />
+	</bean>
+
 	<bean id="loadRdfToSailTaskFactory"
 		class="org.cytoscape.blueprints.graphdb.internal.sail.LoadRdfToSailTaskFactory">
-		<constructor-arg ref="cyApplicationConfigurationServiceRef" />
+		<constructor-arg ref="databaseManager" />
+	</bean>
+	
+	<bean id="convertGraphToCyNetworkTaskFactory" class="org.cytoscape.blueprints.graphdb.internal.sail.ConvertGraphToCyNetworkTaskFactory">
+		<constructor-arg ref="databaseManager" />
+		<constructor-arg ref="graphConverter" />
+		<constructor-arg ref="cyNetworkManagerServiceRef" />
+	
 	</bean>
 
 </beans>

@@ -6,7 +6,12 @@
 	default-lazy-init="false">
 
 
-	<osgi:reference id="cyApplicationConfigurationServiceRef" interface="org.cytoscape.application.CyApplicationConfiguration" />
+	<osgi:reference id="cyApplicationConfigurationServiceRef"
+		interface="org.cytoscape.application.CyApplicationConfiguration" />
+	<osgi:reference id="networkFactoryServiceRef"
+		interface="org.cytoscape.model.CyNetworkFactory" />
+	<osgi:reference id="cyNetworkManagerServiceRef"
+		interface="org.cytoscape.model.CyNetworkManager" />
 
 	<osgi:service id="loadRdfToSailTaskFactoryService" ref="loadRdfToSailTaskFactory"
 		interface="org.cytoscape.work.TaskFactory">
@@ -16,5 +21,20 @@
 			<entry key="menuGravity" value="2.0" />
 		</osgi:service-properties>
 	</osgi:service>
+	
+	
+	<osgi:service id="convertGraphToCyNetworkTaskFactoryService" ref="convertGraphToCyNetworkTaskFactory"
+		interface="org.cytoscape.work.TaskFactory">
+		<osgi:service-properties>
+			<entry key="title" value="From Graph Database..." />
+			<entry key="preferredMenu" value="File.New.Network" />
+			<entry key="menuGravity" value="2.0" />
+		</osgi:service-properties>
+	</osgi:service>
 
+	<osgi:service id="databaseManagerService" ref="databaseManager"
+		auto-export="interfaces" />
+
+	<osgi:service id="graphConverterService" ref="graphConverter"
+		auto-export="interfaces" />
 </beans>

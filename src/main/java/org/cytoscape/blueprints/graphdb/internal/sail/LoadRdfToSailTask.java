@@ -2,13 +2,16 @@ package org.cytoscape.blueprints.graphdb.internal.sail;
 
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
+import org.cytoscape.blueprints.graphdb.GraphConverter;
 import org.cytoscape.work.AbstractTask;
 import org.cytoscape.work.TaskMonitor;
 import org.cytoscape.work.Tunable;
 import org.cytoscape.work.util.ListSingleSelection;
 
+import com.tinkerpop.blueprints.pgm.Edge;
 import com.tinkerpop.blueprints.pgm.impls.sail.SailGraph;
 
 public class LoadRdfToSailTask extends AbstractTask {
@@ -40,8 +43,17 @@ public class LoadRdfToSailTask extends AbstractTask {
 		final String selectedType = type.getSelectedValue();
 		
 		System.out.println("Loading RDF from: ");
-		sailGraph.loadRDF(url.openStream(),
-				"http://purl.uniprot.org/uniprot/P38398", selectedType, "http://purl.uniprot.org/uniprot/P38398");
+		sailGraph.loadRDF(url.openStream(),"", selectedType, null);
+
+		final Iterator<Edge> itr = sailGraph.getEdges().iterator();
+		
+		int count = 0;
+		while(itr.hasNext()) {
+			itr.next();
+			count++;
+		}
+		
+		System.out.println("======> loaded: total = " + count);
 	}
 
 }

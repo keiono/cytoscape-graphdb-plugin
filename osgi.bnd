@@ -3,4 +3,4 @@
 #-----------------------------------------------------------------
 
 Private-Package: org.cytoscape.blueprints.graphdb.internal,org.cytoscape.blueprints.graphdb.internal.*
-
+Export-Package: org.cytoscape.blueprints.graphdb
