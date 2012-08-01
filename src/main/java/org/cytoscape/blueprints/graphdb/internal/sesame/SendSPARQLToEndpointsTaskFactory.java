@@ -3,10 +3,10 @@ package org.cytoscape.blueprints.graphdb.internal.sesame;
 import org.cytoscape.blueprints.graphdb.EndpointManager;
 import org.cytoscape.model.CyNetworkFactory;
 import org.cytoscape.model.CyNetworkManager;
-import org.cytoscape.work.TaskFactory;
+import org.cytoscape.work.AbstractTaskFactory;
 import org.cytoscape.work.TaskIterator;
 
-public class SendSPARQLToEndpointsTaskFactory implements TaskFactory {
+public class SendSPARQLToEndpointsTaskFactory extends AbstractTaskFactory {
 
 	private final EndpointManager manager;
 	private final CyNetworkFactory networkFactory;
@@ -18,9 +18,10 @@ public class SendSPARQLToEndpointsTaskFactory implements TaskFactory {
 		this.networkFactory = networkFactory;
 		this.networkManager = networkManager;
 	}
-
+	
 	@Override
-	public TaskIterator getTaskIterator() {
+	public TaskIterator createTaskIterator() {
 		return new TaskIterator(new SendSPARQLToEndpointsTask(manager, networkFactory, networkManager));
+
 	}
 }

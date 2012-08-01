@@ -3,10 +3,10 @@ package org.cytoscape.blueprints.graphdb.internal.sail;
 import org.cytoscape.blueprints.graphdb.GraphConverter;
 import org.cytoscape.blueprints.graphdb.GraphDatabaseManager;
 import org.cytoscape.model.CyNetworkManager;
-import org.cytoscape.work.TaskFactory;
+import org.cytoscape.work.AbstractTaskFactory;
 import org.cytoscape.work.TaskIterator;
 
-public class ConvertGraphToCyNetworkTaskFactory implements TaskFactory {
+public class ConvertGraphToCyNetworkTaskFactory extends AbstractTaskFactory {
 
 	final GraphDatabaseManager graphManager;
 	final GraphConverter converter;
@@ -20,8 +20,8 @@ public class ConvertGraphToCyNetworkTaskFactory implements TaskFactory {
 	}
 
 	@Override
-	public TaskIterator getTaskIterator() {
+	public TaskIterator createTaskIterator() {
 		return new TaskIterator(new ConvertGraphToCyNetworkTask(graphManager, converter, manager));
-	}
 
+	}
 }

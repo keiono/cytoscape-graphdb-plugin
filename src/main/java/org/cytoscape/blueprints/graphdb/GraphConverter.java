@@ -4,8 +4,8 @@ import java.util.Collection;
 
 import org.cytoscape.model.CyNetwork;
 
-import com.tinkerpop.blueprints.pgm.Edge;
-import com.tinkerpop.blueprints.pgm.Vertex;
+import com.tinkerpop.blueprints.Edge;
+import com.tinkerpop.blueprints.Vertex;
 
 public interface GraphConverter {
 

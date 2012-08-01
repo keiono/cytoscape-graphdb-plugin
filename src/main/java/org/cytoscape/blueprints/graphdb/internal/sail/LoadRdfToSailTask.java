@@ -5,14 +5,13 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import org.cytoscape.blueprints.graphdb.GraphConverter;
 import org.cytoscape.work.AbstractTask;
 import org.cytoscape.work.TaskMonitor;
 import org.cytoscape.work.Tunable;
 import org.cytoscape.work.util.ListSingleSelection;
 
-import com.tinkerpop.blueprints.pgm.Edge;
-import com.tinkerpop.blueprints.pgm.impls.sail.SailGraph;
+import com.tinkerpop.blueprints.Edge;
+import com.tinkerpop.blueprints.impls.sail.SailGraph;
 
 public class LoadRdfToSailTask extends AbstractTask {
 	

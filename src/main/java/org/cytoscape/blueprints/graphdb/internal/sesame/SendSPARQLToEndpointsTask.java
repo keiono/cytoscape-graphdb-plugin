@@ -11,7 +11,7 @@ import org.cytoscape.model.CyNetwork;
 import org.cytoscape.model.CyNetworkFactory;
 import org.cytoscape.model.CyNetworkManager;
 import org.cytoscape.model.CyNode;
-import org.cytoscape.model.CyTableEntry;
+import org.cytoscape.model.CyRow;
 import org.cytoscape.work.AbstractTask;
 import org.cytoscape.work.TaskMonitor;
 import org.cytoscape.work.Tunable;
@@ -27,7 +27,7 @@ import org.openrdf.query.QueryLanguage;
 import org.openrdf.query.TupleQuery;
 import org.openrdf.query.TupleQueryResult;
 import org.openrdf.repository.RepositoryConnection;
-import org.openrdf.repository.http.HTTPRepository;
+import org.openrdf.repository.sparql.SPARQLRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -71,7 +71,7 @@ public class SendSPARQLToEndpointsTask extends AbstractTask {
 	}
 
 	private void sendQuery(final String endpointURL) throws Exception {
-		final HTTPRepository endpoint = new HTTPRepository(endpointURL, "");
+		final SPARQLRepository endpoint = new SPARQLRepository(endpointURL, "");
 		endpoint.initialize();
 
 		final RepositoryConnection conn = endpoint.getConnection();
@@ -103,8 +103,8 @@ public class SendSPARQLToEndpointsTask extends AbstractTask {
 		final GraphQueryResult result = gQuery.evaluate();
 
 		// RDF Graph returned from the query
-		final CyNetwork network = networkFactory.getInstance();
-		network.getCyRow().set(CyTableEntry.NAME, "SPARQL Query Result: " + endpointURL);
+		final CyNetwork network = networkFactory.createNetwork();
+		network.getRow(network).set(CyNetwork.NAME, "SPARQL Query Result: " + endpointURL);
 		final Map<String, CyNode> nodeMap = new HashMap<String, CyNode>();
 
 		while (result.hasNext()) {
@@ -120,18 +120,21 @@ public class SendSPARQLToEndpointsTask extends AbstractTask {
 
 			if (source == null) {
 				source = network.addNode();
-				source.getCyRow().set(CyTableEntry.NAME, subjectValue);
+				final CyRow row = network.getRow(source);
+				row.set(CyNetwork.NAME, subjectValue);
 				nodeMap.put(subjectValue, source);
 			}
-			
+
 			if (target == null) {
 				target = network.addNode();
-				target.getCyRow().set(CyTableEntry.NAME, objectValue);
+				final CyRow row = network.getRow(target);
+				row.set(CyNetwork.NAME, objectValue);
 				nodeMap.put(objectValue, target);
 			}
 
 			final CyEdge edge = network.addEdge(source, target, true);
-			edge.getCyRow().set(CyTableEntry.NAME, pr.stringValue());
+			final CyRow row = network.getRow(edge);
+			row.set(CyNetwork.NAME, pr.stringValue());
 
 		}
 

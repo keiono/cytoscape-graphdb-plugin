@@ -2,7 +2,7 @@ package org.cytoscape.blueprints.graphdb;
 
 import java.util.Map;
 
-import com.tinkerpop.blueprints.pgm.Graph;
+import com.tinkerpop.blueprints.Graph;
 
 public interface GraphDatabaseManager {
 	
