@@ -16,7 +16,7 @@ public class GraphDatabaseManagerImpl implements GraphDatabaseManager, CyShutdow
 
 	private final Map<String, Graph> databaseMap;
 
-	GraphDatabaseManagerImpl(final CyApplicationConfiguration config) {
+	public GraphDatabaseManagerImpl(final CyApplicationConfiguration config) {
 		databaseMap = new HashMap<String, Graph>();
 
 		// TODO: this should be removed

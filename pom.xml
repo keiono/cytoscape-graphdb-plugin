@@ -103,11 +103,10 @@
 						<Bundle-Version>${project.version}</Bundle-Version>
 						<Export-Package>org.cytoscape.blueprints.graphdb</Export-Package>
 						<Import-Package>*;resolution:=optional</Import-Package>
-						<Private-Package>*</Private-Package>
-						<Bundle-Activator>${bundle.symbolicName}.internal.CyActivator</Bundle-Activator>
-						<Embed-Dependency>!org.cytoscape.*,*;scope=compile</Embed-Dependency>
-<!-- 						<Embed-Transitive>true</Embed-Transitive>
- -->					</instructions>
+						<Embed-Dependency>*;scope=compile|runtime</Embed-Dependency>
+						<Embed-Transitive>true</Embed-Transitive>
+						<Bundle-Activator>org.cytoscape.blueprints.graphdb.internal.CyActivator</Bundle-Activator>
+					</instructions>
 				</configuration>
 			</plugin>
 		</plugins>
@@ -126,7 +125,7 @@
 			<version>${osgi.api.version}</version>
 			<scope>provided</scope>
 		</dependency>
-		
+
 		<!-- Cytoscape API -->
 		<dependency>
 			<groupId>org.cytoscape</groupId>
