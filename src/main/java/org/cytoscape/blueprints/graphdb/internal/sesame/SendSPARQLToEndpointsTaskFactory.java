@@ -12,7 +12,7 @@ public class SendSPARQLToEndpointsTaskFactory extends AbstractTaskFactory {
 	private final CyNetworkFactory networkFactory;
 	private final CyNetworkManager networkManager;
 
-	SendSPARQLToEndpointsTaskFactory(final EndpointManager manager, final CyNetworkFactory networkFactory,
+	public SendSPARQLToEndpointsTaskFactory(final EndpointManager manager, final CyNetworkFactory networkFactory,
 			final CyNetworkManager networkManager) {
 		this.manager = manager;
 		this.networkFactory = networkFactory;
@@ -22,6 +22,5 @@ public class SendSPARQLToEndpointsTaskFactory extends AbstractTaskFactory {
 	@Override
 	public TaskIterator createTaskIterator() {
 		return new TaskIterator(new SendSPARQLToEndpointsTask(manager, networkFactory, networkManager));
-
 	}
 }

@@ -13,7 +13,11 @@ public class EndpointManagerImpl implements EndpointManager {
 	
 	private final CyProperty<Properties> prop;
 	
-	EndpointManagerImpl(final CyProperty<Properties> prop) {
+	// Preset ENDPOINTS
+	private static final String LINKED_LIFE_DATA = "http://linkedlifedata.com/sparql";
+	private static final String DBPEDIA = "http://dbpedia.org/sparql";
+	
+	public EndpointManagerImpl(final CyProperty<Properties> prop) {
 		this.prop = prop;
 		endpoints = new HashMap<String, String>();	
 	}
@@ -26,6 +30,9 @@ public class EndpointManagerImpl implements EndpointManager {
 			if(keyString.startsWith(ENDPOINT_PREFIX))
 				endpoints.put(keyString, spProps.getProperty(keyString));
 		}
+		
+		endpoints.put("linkedlifedata", LINKED_LIFE_DATA);
+		endpoints.put("dbPedia", DBPEDIA);
 		System.out.println("===========> Endpoints = " + endpoints.size());
 		return endpoints;
 	}

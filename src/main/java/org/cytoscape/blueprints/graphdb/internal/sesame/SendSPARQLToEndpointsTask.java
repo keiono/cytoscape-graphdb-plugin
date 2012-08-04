@@ -106,13 +106,16 @@ public class SendSPARQLToEndpointsTask extends AbstractTask {
 		final CyNetwork network = networkFactory.createNetwork();
 		network.getRow(network).set(CyNetwork.NAME, "SPARQL Query Result: " + endpointURL);
 		final Map<String, CyNode> nodeMap = new HashMap<String, CyNode>();
-
+		network.getDefaultEdgeTable().createColumn("context", String.class, false);
+		
 		while (result.hasNext()) {
 			final Statement entry = result.next();
+			// Extract triple
 			final Resource sub = entry.getSubject();
 			final URI pr = entry.getPredicate();
 			final Value obj = entry.getObject();
 
+			Resource context = entry.getContext();
 			final String subjectValue = sub.stringValue();
 			final String objectValue = obj.stringValue();
 			CyNode source = nodeMap.get(subjectValue);
@@ -135,6 +138,9 @@ public class SendSPARQLToEndpointsTask extends AbstractTask {
 			final CyEdge edge = network.addEdge(source, target, true);
 			final CyRow row = network.getRow(edge);
 			row.set(CyNetwork.NAME, pr.stringValue());
+			row.set(CyEdge.INTERACTION, pr.getLocalName());
+			if(context != null && context.stringValue() != null)
+				row.set("context", context.stringValue());
 
 		}
 
