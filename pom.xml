@@ -4,9 +4,8 @@
 	<properties>
 		<bundle.symbolicName>org.cytoscape.blueprints.graphdb</bundle.symbolicName>
 		<bundle.namespace>org.cytoscape.blueprints</bundle.namespace>
-		<blueprints.version>2.0.0</blueprints.version>
+		<blueprints.version>2.1.0</blueprints.version>
 		<cytoscape.api.version>3.0.0-beta3-SNAPSHOT</cytoscape.api.version>
-		<maven-bundle-plugin.version>2.3.4</maven-bundle-plugin.version>
 		<osgi.api.version>4.2.0</osgi.api.version>
 	</properties>
 
@@ -112,12 +111,7 @@
 		</plugins>
 	</build>
 
-
-	<!-- Dependencies included here should *ONLY* be for the impl bundle. All 
-		additional dependencies necessary for the integration tests (it) should be 
-		kept in the it/pom.xml -->
 	<dependencies>
-
 		<!-- OSGi Deps -->
 		<dependency>
 			<groupId>org.osgi</groupId>
@@ -130,52 +124,50 @@
 		<dependency>
 			<groupId>org.cytoscape</groupId>
 			<artifactId>service-api</artifactId>
-			<version>3.0.0-beta3-SNAPSHOT</version>
+			<version>${cytoscape.api.version}</version>
 			<scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.cytoscape</groupId>
 			<artifactId>application-api</artifactId>
-			<version>3.0.0-beta3-SNAPSHOT</version>
+			<version>${cytoscape.api.version}</version>
 			<scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.cytoscape</groupId>
 			<artifactId>property-api</artifactId>
-			<version>3.0.0-beta3-SNAPSHOT</version>
+			<version>${cytoscape.api.version}</version>
 			<scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.cytoscape</groupId>
 			<artifactId>work-api</artifactId>
-			<version>3.0.0-beta3-SNAPSHOT</version>
+			<version>${cytoscape.api.version}</version>
 			<scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.cytoscape</groupId>
 			<artifactId>application-api</artifactId>
-			<version>3.0.0-beta3-SNAPSHOT</version>
+			<version>${cytoscape.api.version}</version>
 			<scope>provided</scope>
 		</dependency>
 
-		<!-- Tinkerpop Dependencies -->
+		<!-- Blueprints Dependencies -->
 		<dependency>
 			<groupId>com.tinkerpop.blueprints</groupId>
 			<artifactId>blueprints-core</artifactId>
-			<version>2.0.0</version>
+			<version>${blueprints.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>com.tinkerpop.blueprints</groupId>
 			<artifactId>blueprints-neo4j-graph</artifactId>
-			<version>2.0.0</version>
+			<version>${blueprints.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>com.tinkerpop.blueprints</groupId>
 			<artifactId>blueprints-sail-graph</artifactId>
-			<version>2.0.0</version>
+			<version>${blueprints.version}</version>
 		</dependency>
-
-		<!-- OpenRDF dependency -->
 
 		<!-- For Testing -->
 		<dependency>
@@ -192,4 +184,3 @@
 		</dependency>
 	</dependencies>
 </project>
-
