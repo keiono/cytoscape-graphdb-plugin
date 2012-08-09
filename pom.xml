@@ -165,6 +165,11 @@
 		</dependency>
 		<dependency>
 			<groupId>com.tinkerpop.blueprints</groupId>
+			<artifactId>blueprints-neo4jbatch-graph</artifactId>
+			<version>${blueprints.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.tinkerpop.blueprints</groupId>
 			<artifactId>blueprints-sail-graph</artifactId>
 			<version>${blueprints.version}</version>
 		</dependency>
