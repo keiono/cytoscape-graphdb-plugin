@@ -19,14 +19,14 @@ public class GraphDatabaseManagerImpl implements GraphDatabaseManager, CyShutdow
 	public GraphDatabaseManagerImpl(final CyApplicationConfiguration config) {
 		databaseMap = new HashMap<String, Graph>();
 
-		// TODO: this should be removed
-		final File sailDir = new File(config.getConfigurationDirectoryLocation().getAbsolutePath(), "sail_database");
-		final String sailLocation = sailDir.getAbsolutePath();
-		final NativeStoreSailGraph db = new NativeStoreSailGraph(sailLocation);
-
-		System.out.println("-----------> DB Created: " + sailLocation);
-
-		databaseMap.put(sailLocation, db);
+//		// TODO: this should be removed
+//		final File sailDir = new File(config.getConfigurationDirectoryLocation().getAbsolutePath(), "sail_database");
+//		final String sailLocation = sailDir.getAbsolutePath();
+//		final NativeStoreSailGraph db = new NativeStoreSailGraph(sailLocation);
+//
+//		System.out.println("-----------> DB Created: " + sailLocation);
+//
+//		databaseMap.put(sailLocation, db);
 	}
 
 	public void addDatabase() {

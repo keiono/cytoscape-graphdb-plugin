@@ -4,15 +4,15 @@
 	<properties>
 		<bundle.symbolicName>org.cytoscape.blueprints.graphdb</bundle.symbolicName>
 		<bundle.namespace>org.cytoscape.blueprints</bundle.namespace>
-		<blueprints.version>2.1.0</blueprints.version>
-		<cytoscape.api.version>3.0.0-beta3-SNAPSHOT</cytoscape.api.version>
+		<blueprints.version>2.3.0</blueprints.version>
+		<cytoscape.api.version>3.0.1</cytoscape.api.version>
 		<osgi.api.version>4.2.0</osgi.api.version>
 	</properties>
 
 	<modelVersion>4.0.0</modelVersion>
 	<artifactId>graphdb-plugin</artifactId>
 	<groupId>org.cytoscape</groupId>
-	<version>0.0.2-SNAPSHOT</version>
+	<version>0.1.0-SNAPSHOT</version>
 	<url>http://www.cytoscape.org/</url>
 	<name>${bundle.symbolicName} ${project.version}</name>
 
@@ -49,6 +49,17 @@
 			</releases>
 			<name>Cytoscape Releases</name>
 			<url>http://code.cytoscape.org/nexus/content/repositories/releases/</url>
+		</repository>
+		<repository>
+			<id>central</id>
+			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
+			<releases>
+				<enabled>true</enabled>
+			</releases>
+			<name>central</name>
+			<url>http://repo1.maven.org/maven2/</url>
 		</repository>
 	</repositories>
 
@@ -171,11 +182,6 @@
 		</dependency>
 		<dependency>
 			<groupId>com.tinkerpop.blueprints</groupId>
-			<artifactId>blueprints-neo4jbatch-graph</artifactId>
-			<version>${blueprints.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>com.tinkerpop.blueprints</groupId>
 			<artifactId>blueprints-sail-graph</artifactId>
 			<version>${blueprints.version}</version>
 		</dependency>
@@ -188,9 +194,37 @@
 			<scope>test</scope>
 		</dependency>
 		<dependency>
+			<groupId>commons-logging</groupId>
+			<artifactId>commons-logging</artifactId>
+			<version>1.1.2</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
 			<groupId>org.mockito</groupId>
 			<artifactId>mockito-all</artifactId>
-			<version>1.9.0</version>
+			<version>1.9.5</version>
+			<scope>test</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>org.cytoscape</groupId>
+			<artifactId>model-impl</artifactId>
+			<version>${cytoscape.api.version}</version>
+			<scope>test</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>org.cytoscape</groupId>
+			<artifactId>event-api</artifactId>
+			<version>3.0.0</version>
+			<classifier>tests</classifier>
+		</dependency>
+
+		<dependency>
+			<groupId>org.cytoscape</groupId>
+			<artifactId>model-impl</artifactId>
+			<version>${cytoscape.api.version}</version>
+			<type>test-jar</type>
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
