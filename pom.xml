@@ -212,7 +212,12 @@
 			<version>${cytoscape.api.version}</version>
 			<scope>test</scope>
 		</dependency>
-
+		<dependency>
+			<groupId>org.cytoscape</groupId>
+			<artifactId>io-impl</artifactId>
+			<version>${cytoscape.api.version}</version>
+			<scope>test</scope>
+		</dependency>
 		<dependency>
 			<groupId>org.cytoscape</groupId>
 			<artifactId>event-api</artifactId>
@@ -227,5 +232,39 @@
 			<type>test-jar</type>
 			<scope>test</scope>
 		</dependency>
+
+		<dependency>
+			<groupId>org.cytoscape</groupId>
+			<artifactId>ding-presentation-impl</artifactId>
+			<version>3.0.1</version>
+			<type>test-jar</type>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.cytoscape</groupId>
+			<artifactId>ding-presentation-impl</artifactId>
+			<version>3.0.1</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.cytoscape</groupId>
+			<artifactId>viewmodel-impl</artifactId>
+			<version>3.0.0</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.cytoscape</groupId>
+			<artifactId>viewmodel-impl</artifactId>
+			<version>3.0.0</version>
+			<type>test-jar</type>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.cytoscape</groupId>
+			<artifactId>equations-impl</artifactId>
+			<version>3.0.0</version>
+			<scope>test</scope>
+		</dependency>
+		
 	</dependencies>
 </project>
