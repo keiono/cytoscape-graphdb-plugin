@@ -7,8 +7,8 @@ import static org.mockito.Mockito.when;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Properties;
@@ -24,7 +24,6 @@ import org.cytoscape.model.CyEdge;
 import org.cytoscape.model.CyNetwork;
 import org.cytoscape.model.CyNetworkFactory;
 import org.cytoscape.model.CyNetworkManager;
-import org.cytoscape.model.CyNode;
 import org.cytoscape.model.NetworkTestSupport;
 import org.cytoscape.model.subnetwork.CyRootNetworkManager;
 import org.cytoscape.property.CyProperty;
@@ -41,9 +40,10 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
+import org.neo4j.index.impl.lucene.Hits;
 
-import scala.xml.NodeSeq;
 
+import com.tinkerpop.blueprints.CloseableIterable;
 import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Edge;
 import com.tinkerpop.blueprints.Element;
@@ -54,8 +54,6 @@ import com.tinkerpop.blueprints.KeyIndexableGraph;
 import com.tinkerpop.blueprints.TransactionalGraph;
 import com.tinkerpop.blueprints.Vertex;
 import com.tinkerpop.blueprints.impls.neo4j.Neo4jGraph;
-import com.tinkerpop.blueprints.impls.neo4j.batch.Neo4jBatchGraph;
-import com.tinkerpop.blueprints.util.wrappers.batch.BatchGraph;
 
 public class ExportGraphTaskTest {
 
@@ -166,24 +164,22 @@ public class ExportGraphTaskTest {
 		// Number of nodes
 		assertEquals(331l, nodeCount);
 
-		testGraphTopology((KeyIndexableGraph) bgraph);
+		testGraphTopology((IndexableGraph) bgraph);
 
 		bgraph.shutdown();
 	}
 
-	private final void testGraphTopology(KeyIndexableGraph graph) {
+	private final void testGraphTopology(IndexableGraph graph) {
 
-		Set<String> nodeKeys = graph.getIndexedKeys(Vertex.class);
-		Set<String> edgeKeys = graph.getIndexedKeys(Edge.class);
-		assertEquals(2, nodeKeys.size());
-		assertEquals(4, edgeKeys.size());
-
-		for (String key : nodeKeys) {
-			System.out.println("Node Key = " + key);
-		}
-		for (String key : edgeKeys) {
-			System.out.println("Edge Key = " + key);
-		}
+//		Index<Vertex> nodeNameKey = graph.getIndex("name", Vertex.class);
+//		Index<Edge> edgeNameKey = graph.getIndex("name", Edge.class);
+//		Index<Edge> edgeInteractionKey = graph.getIndex(CyEdge.INTERACTION, Edge.class);
+//		assertNotNull(nodeNameKey);
+//		assertNotNull(edgeNameKey);
+//		assertNotNull(edgeInteractionKey);
+//		
+//		long keys = countResult(graph.getIndices().iterator());
+//		assertEquals(2, graph.getIndexedKeys(Vertex.class).size());
 
 		// Get node by index
 		String hub1 = "YNL216W";
@@ -212,7 +208,53 @@ public class ExportGraphTaskTest {
 					nList.contains(out.getProperty(CyNetwork.NAME)) );
 		
 		}
+		
+		// Test case sensitivity
+		final Index<Vertex> idx = graph.getIndex("Vertex.name", Vertex.class);
+		assertEquals("Vertex.name", idx.getIndexName());
+		CloseableIterable<Vertex> searchResult = idx.query("Vertex.name", "YNL216W");
+		Set<Vertex> nodesFound = checkHits(searchResult);
+		assertEquals(1, nodesFound.size());
 
+		CloseableIterable<Vertex> searchResult2 = idx.query("Vertex.name", "YN*");
+		Set<Vertex> nodesFound2 = checkHits(searchResult2);
+		assertEquals(26, nodesFound2.size());
+
+		CloseableIterable<Vertex> searchResult3 = idx.query("Vertex.name", "ynL216w");
+		Set<Vertex> nodesFound3 = checkHits(searchResult3);
+		assertEquals(1, nodesFound3.size());
+	
+		
+		final Index<Edge> edgeIdx = graph.getIndex("Edge.interaction", Edge.class);
+		assertEquals("Edge.interaction", edgeIdx.getIndexName());
+		CloseableIterable<Edge> edgeSearchResult = edgeIdx.query("Edge.interaction", "p*");
+		Set<Edge> eHits = checkHits(edgeSearchResult);
+		assertEquals(362, eHits.size());
+	
+		final Index<Edge> edgeIdx2 = graph.getIndex("Edge.name", Edge.class);
+		assertEquals("Edge.name", edgeIdx2.getIndexName());
+		Iterable<Edge> edgeSearchResult2 = graph.getEdges("name", "YNL216W (pd) YOL086C");
+//		CloseableIterable<Edge> edgeSearchResult2 = edgeIdx.query("Edge.name", "Y*");
+		Set<Edge> eHits2 = checkHits(edgeSearchResult2);
+		assertEquals(1, eHits2.size());
+	
+		final Index<Edge> edgeIdx3 = graph.getIndex("Edge.name", Edge.class);
+		assertEquals("Edge.name", edgeIdx3.getIndexName());
+		assertEquals(Edge.class, edgeIdx3.getIndexClass());
+		CloseableIterable<Edge> edgeSearchResult3 = edgeIdx3.query("Edge.name", "*YnL*");
+		Set<Edge> eHits3 = checkHits(edgeSearchResult3);
+		assertEquals(56, eHits3.size());
+	}
+	
+	private final Set checkHits(Iterable<? extends Element> nodes) {
+		assertNotNull(nodes);
+		final Iterator caseItr = nodes.iterator();
+		final Set hitSet = new HashSet();
+		while(caseItr.hasNext()) {
+			hitSet.add(caseItr.next());
+		}
+		
+		return hitSet;
 	}
 
 	private final long countResult(Iterator<?> itr) {
