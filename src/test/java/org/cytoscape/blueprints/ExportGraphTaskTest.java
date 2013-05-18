@@ -206,7 +206,6 @@ public class ExportGraphTaskTest {
 			final Vertex out = edge.getVertex(Direction.OUT);
 			assertTrue(nList.contains(in.getProperty(CyNetwork.NAME)) && 
 					nList.contains(out.getProperty(CyNetwork.NAME)) );
-		
 		}
 		
 		// Test case sensitivity
@@ -223,7 +222,6 @@ public class ExportGraphTaskTest {
 		CloseableIterable<Vertex> searchResult3 = idx.query("Vertex.name", "ynL216w");
 		Set<Vertex> nodesFound3 = checkHits(searchResult3);
 		assertEquals(1, nodesFound3.size());
-	
 		
 		final Index<Edge> edgeIdx = graph.getIndex("Edge.interaction", Edge.class);
 		assertEquals("Edge.interaction", edgeIdx.getIndexName());

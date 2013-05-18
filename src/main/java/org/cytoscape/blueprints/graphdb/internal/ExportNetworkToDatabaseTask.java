@@ -136,7 +136,8 @@ public class ExportNetworkToDatabaseTask extends AbstractNetworkTask {
 		Map<String, String> idx2colName = new HashMap<String, String>();
 
 		for (final CyColumn column : columns) {
-
+//			((KeyIndexableGraph)graph).createKeyIndex(column.getName(), type, new Parameter("analyzer", LowerCaseKeywordAnalyzer.class.getName()));
+			
 			Index<? extends Element> idx = graph.createIndex(type.getSimpleName() + "." + column.getName(), type,
 					new Parameter("analyzer", LowerCaseKeywordAnalyzer.class.getName()));
 			idx2colName.put(idx.getIndexName(), column.getName());
@@ -165,25 +166,17 @@ public class ExportNetworkToDatabaseTask extends AbstractNetworkTask {
 				CyIdentifiable graphObj = null;
 				if (type == Vertex.class)
 					graphObj = network.getNode(suid);
-				else {
+				else 
 					graphObj = network.getEdge(suid);
-				}
 
 				final Object val = network.getRow(graphObj).get(colName, table.getColumn(colName).getType());
-				if (val == null) {
-
+				if (val == null)
 					continue;
-				}
 
 				idx.put(idxName, val, elm);
-
 			}
 		}
 
-	}
-
-	private String getIdxName(CyColumn column, Class<? extends Element> type) {
-		return type.getSimpleName() + "." + column.getName();
 	}
 
 	private final void createProperties(Collection<CyColumn> columns, final CyIdentifiable graphObject,
@@ -198,10 +191,10 @@ public class ExportNetworkToDatabaseTask extends AbstractNetworkTask {
 
 				Object valueObject = value;
 				if (column.getType() == String.class) {
-					String newString = ((String) value).replace("'", "");
+					String newString = ((String) value).replace("\'", "");
 					valueObject = newString;
 				}
-				element.setProperty(colName, value);
+				element.setProperty(colName, valueObject);
 
 			}
 		}
