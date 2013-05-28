@@ -16,22 +16,17 @@ import org.cytoscape.model.CyNetwork;
 import org.cytoscape.model.CyNode;
 import org.cytoscape.model.CyRow;
 import org.cytoscape.model.CyTable;
-import org.cytoscape.model.SUIDFactory;
 import org.cytoscape.task.AbstractNetworkTask;
 import org.cytoscape.work.ProvidesTitle;
 import org.cytoscape.work.TaskMonitor;
 import org.cytoscape.work.Tunable;
 import org.neo4j.index.impl.lucene.LowerCaseKeywordAnalyzer;
 
-import com.fasterxml.jackson.annotation.ObjectIdGenerator;
-import com.fasterxml.jackson.annotation.JsonFormat.Value;
 import com.tinkerpop.blueprints.Edge;
 import com.tinkerpop.blueprints.Element;
 import com.tinkerpop.blueprints.Graph;
 import com.tinkerpop.blueprints.Index;
 import com.tinkerpop.blueprints.IndexableGraph;
-import com.tinkerpop.blueprints.KeyIndexableGraph;
-import com.tinkerpop.blueprints.MetaGraph;
 import com.tinkerpop.blueprints.Parameter;
 import com.tinkerpop.blueprints.Vertex;
 import com.tinkerpop.blueprints.impls.neo4j.Neo4jGraph;
@@ -102,7 +97,6 @@ public class ExportNetworkToDatabaseTask extends AbstractNetworkTask {
 			edge2ID.put(edge, tEdge.getId());
 		}
 		bgraph.commit();
-
 		bgraph.shutdown();
 		graph.shutdown();
 
@@ -110,22 +104,19 @@ public class ExportNetworkToDatabaseTask extends AbstractNetworkTask {
 		createIdx(nodeColumns, iGraph, Vertex.class);
 		createIdx(edgeColumns, iGraph, Edge.class);
 		iGraph.shutdown();
-
 	}
 
 	private Collection<CyColumn> createValidColumns(CyTable table) {
 		final Collection<CyColumn> originalColumns = table.getColumns();
-		// Skip List for now... TODO: Implement List to String module
+		
 		final Set<CyColumn> columns = new HashSet<CyColumn>();
 		for (CyColumn col : originalColumns) {
-			if (col.getType() != List.class) {
-				// Filter unnecessary columns
-				if (!col.getName().equals(CyNetwork.SELECTED) && !col.getName().equals("shared name")
-						&& !col.getName().equals("shared interaction")) {
+			// Filter unnecessary columns
+			if (!col.getName().equals(CyNetwork.SELECTED) && !col.getName().equals("shared name")
+					&& !col.getName().equals("shared interaction")) {
 
-					System.out.println("New col = " + col.getName());
-					columns.add(col);
-				}
+				System.out.println("New col = " + col.getName());
+				columns.add(col);
 			}
 		}
 		return columns;
@@ -135,9 +126,22 @@ public class ExportNetworkToDatabaseTask extends AbstractNetworkTask {
 
 		Map<String, String> idx2colName = new HashMap<String, String>();
 
+		Iterator<Index<? extends Element>> idxItr = graph.getIndices().iterator();
+
+		final Set<String> existingIdx = new HashSet<String>();
+		while (idxItr.hasNext()) {
+			Index<? extends Element> idx = idxItr.next();
+			String originalIdxName = idx.getIndexName();
+			existingIdx.add(originalIdxName);
+		}
+
 		for (final CyColumn column : columns) {
-//			((KeyIndexableGraph)graph).createKeyIndex(column.getName(), type, new Parameter("analyzer", LowerCaseKeywordAnalyzer.class.getName()));
-			
+			final String idxName = type.getSimpleName() + "." + column.getName();
+			System.out.println("New Name = " + idxName);
+			if (existingIdx.contains(idxName)) {
+				continue;
+			}
+
 			Index<? extends Element> idx = graph.createIndex(type.getSimpleName() + "." + column.getName(), type,
 					new Parameter("analyzer", LowerCaseKeywordAnalyzer.class.getName()));
 			idx2colName.put(idx.getIndexName(), column.getName());
@@ -157,7 +161,7 @@ public class ExportNetworkToDatabaseTask extends AbstractNetworkTask {
 				elementItr = graph.getEdges().iterator();
 				table = network.getDefaultEdgeTable();
 			}
-			
+
 			while (elementItr.hasNext()) {
 
 				final Element elm = elementItr.next();
@@ -166,7 +170,7 @@ public class ExportNetworkToDatabaseTask extends AbstractNetworkTask {
 				CyIdentifiable graphObj = null;
 				if (type == Vertex.class)
 					graphObj = network.getNode(suid);
-				else 
+				else
 					graphObj = network.getEdge(suid);
 
 				final Object val = network.getRow(graphObj).get(colName, table.getColumn(colName).getType());
@@ -186,7 +190,10 @@ public class ExportNetworkToDatabaseTask extends AbstractNetworkTask {
 
 		for (final CyColumn column : columns) {
 			final String colName = column.getName();
-			final Object value = row.get(colName, column.getType());
+
+			Object value = null;
+
+			value = row.get(colName, column.getType());
 			if (value != null) {
 
 				Object valueObject = value;
@@ -195,7 +202,6 @@ public class ExportNetworkToDatabaseTask extends AbstractNetworkTask {
 					valueObject = newString;
 				}
 				element.setProperty(colName, valueObject);
-
 			}
 		}
 	}
