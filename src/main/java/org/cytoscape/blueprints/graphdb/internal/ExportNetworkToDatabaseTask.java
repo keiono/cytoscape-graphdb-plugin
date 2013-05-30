@@ -20,7 +20,10 @@ import org.cytoscape.task.AbstractNetworkTask;
 import org.cytoscape.work.ProvidesTitle;
 import org.cytoscape.work.TaskMonitor;
 import org.cytoscape.work.Tunable;
+import org.neo4j.cypher.internal.parser.v1_7.MatchClause.NodeNamer;
 import org.neo4j.index.impl.lucene.LowerCaseKeywordAnalyzer;
+
+import scala.xml.NodeSeq;
 
 import com.tinkerpop.blueprints.Edge;
 import com.tinkerpop.blueprints.Element;
@@ -41,13 +44,16 @@ public class ExportNetworkToDatabaseTask extends AbstractNetworkTask {
 	@Tunable(description = "Export to DB:")
 	public String databaseLocation;
 
+	@Tunable(description = "Swap Edge Directions:")
+	public boolean swapEdgeDirections = false;
+
 	@ProvidesTitle
 	public String getTitle() {
 		return "Export Network to Graph Database";
 	}
 
-	private final Map<CyNode, Object> node2ID = new HashMap<CyNode, Object>();
-	private final Map<CyEdge, Object> edge2ID = new HashMap<CyEdge, Object>();
+//	private final Map<CyNode, Vertex> node2ID = new HashMap<CyNode, Vertex>();
+//	private final Map<CyEdge, Object> edge2ID = new HashMap<CyEdge, Object>();
 
 	public ExportNetworkToDatabaseTask(CyApplicationManager appManager) {
 		super(appManager.getCurrentNetwork());
@@ -60,6 +66,18 @@ public class ExportNetworkToDatabaseTask extends AbstractNetworkTask {
 	@Override
 	public void run(TaskMonitor taskMonitor) throws Exception {
 		final Graph graph = new Neo4jGraph(databaseLocation);
+		
+		// Build vertex name map
+		final Map<String, Vertex> name2VertexMap = new HashMap<String, Vertex>();
+		Iterator<Vertex> allExistingNodeItr = graph.getVertices().iterator();
+		while(allExistingNodeItr.hasNext()) {
+			final Vertex node = allExistingNodeItr.next();
+			final String nodeName = node.getProperty("name");
+			if(nodeName != null)
+				name2VertexMap.put(nodeName, node);
+		}
+		
+		
 		final BatchGraph<?> bgraph = BatchGraph.wrap(graph);
 
 		final List<CyEdge> allEdges = network.getEdgeList();
@@ -74,27 +92,34 @@ public class ExportNetworkToDatabaseTask extends AbstractNetworkTask {
 			final CyNode source = edge.getSource();
 			final CyNode target = edge.getTarget();
 
-			// String sourceName = network.getRow(source).get(CyNetwork.NAME,
-			// String.class);
-			// String targetName = network.getRow(target).get(CyNetwork.NAME,
-			// String.class);
-
-			Vertex sourceV = bgraph.getVertex(source.getSUID());
-			if (sourceV == null)
-				sourceV = bgraph.addVertex(source.getSUID());
+			String sourceName = network.getRow(source).get(CyNetwork.NAME, String.class);
+			
+			Vertex sourceV = name2VertexMap.get(sourceName);
+			if (sourceV == null) {
+				sourceV = bgraph.addVertex(sourceName);
+				name2VertexMap.put(sourceName, sourceV);
+			}
 			createProperties(nodeColumns, source, sourceV);
-			node2ID.put(source, sourceV.getId());
 
-			Vertex targetV = bgraph.getVertex(target.getSUID());
-			if (targetV == null)
-				targetV = bgraph.addVertex(target.getSUID());
+			String targetName = network.getRow(target).get(CyNetwork.NAME, String.class);
+			Vertex targetV = name2VertexMap.get(targetName);
+			if (targetV == null) {
+				targetV = bgraph.addVertex(targetName);
+				name2VertexMap.put(targetName, targetV);
+			}
 			createProperties(nodeColumns, target, targetV);
-			node2ID.put(target, targetV.getId());
 
-			final String interactionType = network.getRow(edge).get(CyEdge.INTERACTION, String.class);
-			final Edge tEdge = bgraph.addEdge(edge.getSUID(), sourceV, targetV, interactionType);
+			String interactionType = network.getRow(edge).get("NeXO relation type", String.class);
+			if (interactionType == null)
+				interactionType = network.getRow(edge).get(CyEdge.INTERACTION, String.class);
+
+			Edge tEdge = null;
+			if (swapEdgeDirections)
+				tEdge = bgraph.addEdge(edge.getSUID(), targetV, sourceV, interactionType);
+			else
+				tEdge = bgraph.addEdge(edge.getSUID(), sourceV, targetV, interactionType);
+
 			createProperties(edgeColumns, edge, tEdge);
-			edge2ID.put(edge, tEdge.getId());
 		}
 		bgraph.commit();
 		bgraph.shutdown();
@@ -108,7 +133,7 @@ public class ExportNetworkToDatabaseTask extends AbstractNetworkTask {
 
 	private Collection<CyColumn> createValidColumns(CyTable table) {
 		final Collection<CyColumn> originalColumns = table.getColumns();
-		
+
 		final Set<CyColumn> columns = new HashSet<CyColumn>();
 		for (CyColumn col : originalColumns) {
 			// Filter unnecessary columns
@@ -124,63 +149,63 @@ public class ExportNetworkToDatabaseTask extends AbstractNetworkTask {
 
 	private void createIdx(Collection<CyColumn> columns, final IndexableGraph graph, Class<? extends Element> type) {
 
-		Map<String, String> idx2colName = new HashMap<String, String>();
+		Index index = graph.getIndex(type.getSimpleName(), type);
+		if (index == null)
+			index = graph.createIndex(type.getSimpleName(), type, new Parameter("analyzer",
+					LowerCaseKeywordAnalyzer.class.getName()));
 
-		Iterator<Index<? extends Element>> idxItr = graph.getIndices().iterator();
-
-		final Set<String> existingIdx = new HashSet<String>();
-		while (idxItr.hasNext()) {
-			Index<? extends Element> idx = idxItr.next();
-			String originalIdxName = idx.getIndexName();
-			existingIdx.add(originalIdxName);
-		}
-
+		final Set<String> columnNamesSet = new HashSet<String>();
 		for (final CyColumn column : columns) {
-			final String idxName = type.getSimpleName() + "." + column.getName();
-			System.out.println("New Name = " + idxName);
-			if (existingIdx.contains(idxName)) {
-				continue;
-			}
-
-			Index<? extends Element> idx = graph.createIndex(type.getSimpleName() + "." + column.getName(), type,
-					new Parameter("analyzer", LowerCaseKeywordAnalyzer.class.getName()));
-			idx2colName.put(idx.getIndexName(), column.getName());
+			columnNamesSet.add(column.getName());
 		}
 
 		Iterator<? extends Element> elementItr = null;
 
-		for (String idxName : idx2colName.keySet()) {
-			Index idx = graph.getIndex(idxName, type);
+		for (final CyColumn column : columns) {
 
-			final String colName = idx2colName.get(idxName);
-			CyTable table = null;
+			if (column.getName().equals(CyIdentifiable.SUID))
+				continue;
+
 			if (type == Vertex.class) {
 				elementItr = graph.getVertices().iterator();
-				table = network.getDefaultNodeTable();
 			} else {
 				elementItr = graph.getEdges().iterator();
-				table = network.getDefaultEdgeTable();
 			}
 
 			while (elementItr.hasNext()) {
-
 				final Element elm = elementItr.next();
 				final Long suid = elm.getProperty(CyIdentifiable.SUID);
-				// System.out.println(suid.getClass() + " ### SUID = " + suid);
+
+				if (suid == null)
+					continue;
+
 				CyIdentifiable graphObj = null;
 				if (type == Vertex.class)
 					graphObj = network.getNode(suid);
 				else
 					graphObj = network.getEdge(suid);
 
-				final Object val = network.getRow(graphObj).get(colName, table.getColumn(colName).getType());
+				final Object val = network.getRow(graphObj).get(column.getName(), column.getType());
 				if (val == null)
 					continue;
 
-				idx.put(idxName, val, elm);
+				// System.out.println("######## Adding: " + column.getName() +
+				// " ==== " + val);
+				index.put(column.getName(), val, elm);
 			}
 		}
 
+		// TODO: REMOVE SUID
+
+		if (type == Vertex.class) {
+			elementItr = graph.getVertices().iterator();
+		} else {
+			elementItr = graph.getEdges().iterator();
+		}
+		while (elementItr.hasNext()) {
+			final Element elm = elementItr.next();
+			elm.removeProperty(CyIdentifiable.SUID);
+		}
 	}
 
 	private final void createProperties(Collection<CyColumn> columns, final CyIdentifiable graphObject,

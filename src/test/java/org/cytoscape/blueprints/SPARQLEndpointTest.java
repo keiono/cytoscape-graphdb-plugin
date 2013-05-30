@@ -30,14 +30,14 @@ public class SPARQLEndpointTest {
 		String q2 = "CONSTRUCT{" + "?p <http://dbpedia.org/ontology/influenced> ?influenced." + "} WHERE {" + "?p a"
 				+ "<http://dbpedia.org/ontology/Philosopher> ."
 				+ "?p <http://dbpedia.org/ontology/influenced> ?influenced." + "} LIMIT 10000";
-		final SPARQLRepository dbPediaEndPoint = new SPARQLRepository(dbPedia, "");
-		dbPediaEndPoint.initialize();
-		final RepositoryConnection conn2 = dbPediaEndPoint.getConnection();
-		final GraphQuery gQuery = conn2.prepareGraphQuery(QueryLanguage.SPARQL, q2);
-		final GraphQueryResult result2 = gQuery.evaluate();
-
-		assertNotNull(result2);
-		System.out.println(result2);
+//		final SPARQLRepository dbPediaEndPoint = new SPARQLRepository(dbPedia, "");
+//		dbPediaEndPoint.initialize();
+//		final RepositoryConnection conn2 = dbPediaEndPoint.getConnection();
+//		final GraphQuery gQuery = conn2.prepareGraphQuery(QueryLanguage.SPARQL, q2);
+//		final GraphQueryResult result2 = gQuery.evaluate();
+//
+//		assertNotNull(result2);
+//		System.out.println(result2);
 	}
 
 }

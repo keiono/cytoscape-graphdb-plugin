@@ -208,38 +208,48 @@ public class ExportGraphTaskTest {
 					nList.contains(out.getProperty(CyNetwork.NAME)) );
 		}
 		
+		Iterable<Index<? extends Element>> allIdx = graph.getIndices();
+		Iterator<Index<? extends Element>> idxitr = allIdx.iterator();
+		while(idxitr.hasNext()) {
+			Index<? extends Element> idx = idxitr.next();
+			System.out.println("Index: " + idx.getIndexName());
+		}
+		
 		// Test case sensitivity
-		final Index<Vertex> idx = graph.getIndex("Vertex.name", Vertex.class);
-		assertEquals("Vertex.name", idx.getIndexName());
-		CloseableIterable<Vertex> searchResult = idx.query("Vertex.name", "YNL216W");
+		final Index<Vertex> idx = graph.getIndex("Vertex", Vertex.class);
+		assertEquals("Vertex", idx.getIndexName());
+		CloseableIterable<Vertex> searchResult = idx.get("name", "YNL216W");
 		Set<Vertex> nodesFound = checkHits(searchResult);
 		assertEquals(1, nodesFound.size());
 
-		CloseableIterable<Vertex> searchResult2 = idx.query("Vertex.name", "YN*");
+		searchResult = idx.query("name", "YNL216W");
+		nodesFound = checkHits(searchResult);
+		assertEquals(1, nodesFound.size());
+
+		CloseableIterable<Vertex> searchResult2 = idx.query("name", "YN*");
 		Set<Vertex> nodesFound2 = checkHits(searchResult2);
 		assertEquals(26, nodesFound2.size());
 
-		CloseableIterable<Vertex> searchResult3 = idx.query("Vertex.name", "ynL216w");
+		CloseableIterable<Vertex> searchResult3 = idx.query("name", "ynL216w");
 		Set<Vertex> nodesFound3 = checkHits(searchResult3);
 		assertEquals(1, nodesFound3.size());
 		
-		final Index<Edge> edgeIdx = graph.getIndex("Edge.interaction", Edge.class);
-		assertEquals("Edge.interaction", edgeIdx.getIndexName());
-		CloseableIterable<Edge> edgeSearchResult = edgeIdx.query("Edge.interaction", "p*");
+		final Index<Edge> edgeIdx = graph.getIndex("Edge", Edge.class);
+		assertEquals("Edge", edgeIdx.getIndexName());
+		assertEquals(Edge.class, edgeIdx.getIndexClass());
+		CloseableIterable<Edge> edgeSearchResult = edgeIdx.query("interaction", "p*");
 		Set<Edge> eHits = checkHits(edgeSearchResult);
 		assertEquals(362, eHits.size());
-	
-		final Index<Edge> edgeIdx2 = graph.getIndex("Edge.name", Edge.class);
-		assertEquals("Edge.name", edgeIdx2.getIndexName());
+		
+		Iterable<Edge> edgeSearchResult4 = edgeIdx.query("interaction", "*d");
+		Set<Edge> eHits4 = checkHits(edgeSearchResult4);
+		assertEquals(111, eHits4.size());
+		
 		Iterable<Edge> edgeSearchResult2 = graph.getEdges("name", "YNL216W (pd) YOL086C");
-//		CloseableIterable<Edge> edgeSearchResult2 = edgeIdx.query("Edge.name", "Y*");
 		Set<Edge> eHits2 = checkHits(edgeSearchResult2);
 		assertEquals(1, eHits2.size());
 	
-		final Index<Edge> edgeIdx3 = graph.getIndex("Edge.name", Edge.class);
-		assertEquals("Edge.name", edgeIdx3.getIndexName());
-		assertEquals(Edge.class, edgeIdx3.getIndexClass());
-		CloseableIterable<Edge> edgeSearchResult3 = edgeIdx3.query("Edge.name", "*YnL*");
+		CloseableIterable<Edge> edgeSearchResult3 = edgeIdx.query("name", "*yNl*");
 		Set<Edge> eHits3 = checkHits(edgeSearchResult3);
 		assertEquals(56, eHits3.size());
 	}
@@ -266,7 +276,7 @@ public class ExportGraphTaskTest {
 
 	private final void clearDB() {
 		TransactionalGraph graph = new Neo4jGraph(DATABASE_LOCATION);
-
+		
 		Iterable<Edge> edges = graph.getEdges();
 		Iterator<Edge> itr2 = edges.iterator();
 
