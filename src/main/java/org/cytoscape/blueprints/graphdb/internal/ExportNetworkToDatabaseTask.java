@@ -20,10 +20,9 @@ import org.cytoscape.task.AbstractNetworkTask;
 import org.cytoscape.work.ProvidesTitle;
 import org.cytoscape.work.TaskMonitor;
 import org.cytoscape.work.Tunable;
-import org.neo4j.cypher.internal.parser.v1_7.MatchClause.NodeNamer;
 import org.neo4j.index.impl.lucene.LowerCaseKeywordAnalyzer;
-
-import scala.xml.NodeSeq;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.tinkerpop.blueprints.Edge;
 import com.tinkerpop.blueprints.Element;
@@ -41,7 +40,9 @@ import com.tinkerpop.blueprints.util.wrappers.batch.BatchGraph;
  */
 public class ExportNetworkToDatabaseTask extends AbstractNetworkTask {
 
-	@Tunable(description = "Export to DB:")
+	private static final Logger logger = LoggerFactory.getLogger(ExportNetworkToDatabaseTask.class);
+
+	@Tunable(description = "Export to DB (Type full path):")
 	public String databaseLocation;
 
 	@Tunable(description = "Swap Edge Directions:")
@@ -49,11 +50,9 @@ public class ExportNetworkToDatabaseTask extends AbstractNetworkTask {
 
 	@ProvidesTitle
 	public String getTitle() {
-		return "Export Network to Graph Database";
+		return "Export Current Network to Neo4j";
 	}
 
-//	private final Map<CyNode, Vertex> node2ID = new HashMap<CyNode, Vertex>();
-//	private final Map<CyEdge, Object> edge2ID = new HashMap<CyEdge, Object>();
 
 	public ExportNetworkToDatabaseTask(CyApplicationManager appManager) {
 		super(appManager.getCurrentNetwork());
@@ -65,70 +64,78 @@ public class ExportNetworkToDatabaseTask extends AbstractNetworkTask {
 
 	@Override
 	public void run(TaskMonitor taskMonitor) throws Exception {
-		final Graph graph = new Neo4jGraph(databaseLocation);
-		
-		// Build vertex name map
-		final Map<String, Vertex> name2VertexMap = new HashMap<String, Vertex>();
-		Iterator<Vertex> allExistingNodeItr = graph.getVertices().iterator();
-		while(allExistingNodeItr.hasNext()) {
-			final Vertex node = allExistingNodeItr.next();
-			final String nodeName = node.getProperty("name");
-			if(nodeName != null)
-				name2VertexMap.put(nodeName, node);
-		}
-		
-		
-		final BatchGraph<?> bgraph = BatchGraph.wrap(graph);
 
-		final List<CyEdge> allEdges = network.getEdgeList();
-		final CyTable nodeTable = network.getDefaultNodeTable();
-		final CyTable edgeTable = network.getDefaultEdgeTable();
+		try {
+			final Graph graph = new Neo4jGraph(databaseLocation);
 
-		Collection<CyColumn> nodeColumns = createValidColumns(nodeTable);
-		Collection<CyColumn> edgeColumns = createValidColumns(edgeTable);
+			logger.info("========= Graph Created: " + graph);
 
-		for (final CyEdge edge : allEdges) {
-
-			final CyNode source = edge.getSource();
-			final CyNode target = edge.getTarget();
-
-			String sourceName = network.getRow(source).get(CyNetwork.NAME, String.class);
-			
-			Vertex sourceV = name2VertexMap.get(sourceName);
-			if (sourceV == null) {
-				sourceV = bgraph.addVertex(sourceName);
-				name2VertexMap.put(sourceName, sourceV);
+			// Build vertex name map
+			final Map<String, Vertex> name2VertexMap = new HashMap<String, Vertex>();
+			Iterator<Vertex> allExistingNodeItr = graph.getVertices().iterator();
+			while (allExistingNodeItr.hasNext()) {
+				final Vertex node = allExistingNodeItr.next();
+				final String nodeName = node.getProperty("name");
+				if (nodeName != null)
+					name2VertexMap.put(nodeName, node);
 			}
-			createProperties(nodeColumns, source, sourceV);
 
-			String targetName = network.getRow(target).get(CyNetwork.NAME, String.class);
-			Vertex targetV = name2VertexMap.get(targetName);
-			if (targetV == null) {
-				targetV = bgraph.addVertex(targetName);
-				name2VertexMap.put(targetName, targetV);
+			final BatchGraph<?> bgraph = BatchGraph.wrap(graph);
+
+			final List<CyEdge> allEdges = network.getEdgeList();
+			final CyTable nodeTable = network.getDefaultNodeTable();
+			final CyTable edgeTable = network.getDefaultEdgeTable();
+
+			Collection<CyColumn> nodeColumns = createValidColumns(nodeTable);
+			Collection<CyColumn> edgeColumns = createValidColumns(edgeTable);
+
+			for (final CyEdge edge : allEdges) {
+
+				final CyNode source = edge.getSource();
+				final CyNode target = edge.getTarget();
+
+				String sourceName = network.getRow(source).get(CyNetwork.NAME, String.class);
+
+				Vertex sourceV = name2VertexMap.get(sourceName);
+				if (sourceV == null) {
+					sourceV = bgraph.addVertex(sourceName);
+					name2VertexMap.put(sourceName, sourceV);
+				}
+				createProperties(nodeColumns, source, sourceV);
+
+				String targetName = network.getRow(target).get(CyNetwork.NAME, String.class);
+				Vertex targetV = name2VertexMap.get(targetName);
+				if (targetV == null) {
+					targetV = bgraph.addVertex(targetName);
+					name2VertexMap.put(targetName, targetV);
+				}
+				createProperties(nodeColumns, target, targetV);
+
+				String interactionType = network.getRow(edge).get("NeXO relation type", String.class);
+				if (interactionType == null)
+					interactionType = network.getRow(edge).get(CyEdge.INTERACTION, String.class);
+
+				Edge tEdge = null;
+				if (swapEdgeDirections)
+					tEdge = bgraph.addEdge(edge.getSUID(), targetV, sourceV, interactionType);
+				else
+					tEdge = bgraph.addEdge(edge.getSUID(), sourceV, targetV, interactionType);
+
+				createProperties(edgeColumns, edge, tEdge);
 			}
-			createProperties(nodeColumns, target, targetV);
 
-			String interactionType = network.getRow(edge).get("NeXO relation type", String.class);
-			if (interactionType == null)
-				interactionType = network.getRow(edge).get(CyEdge.INTERACTION, String.class);
+			bgraph.commit();
+			bgraph.shutdown();
+			graph.shutdown();
 
-			Edge tEdge = null;
-			if (swapEdgeDirections)
-				tEdge = bgraph.addEdge(edge.getSUID(), targetV, sourceV, interactionType);
-			else
-				tEdge = bgraph.addEdge(edge.getSUID(), sourceV, targetV, interactionType);
-
-			createProperties(edgeColumns, edge, tEdge);
+			final IndexableGraph iGraph = new Neo4jGraph(databaseLocation);
+			createIdx(nodeColumns, iGraph, Vertex.class);
+			createIdx(edgeColumns, iGraph, Edge.class);
+			iGraph.shutdown();
+		} catch (Exception ex) {
+			ex.printStackTrace();
+			logger.error("Could not create new DB: ", ex);
 		}
-		bgraph.commit();
-		bgraph.shutdown();
-		graph.shutdown();
-
-		final IndexableGraph iGraph = new Neo4jGraph(databaseLocation);
-		createIdx(nodeColumns, iGraph, Vertex.class);
-		createIdx(edgeColumns, iGraph, Edge.class);
-		iGraph.shutdown();
 	}
 
 	private Collection<CyColumn> createValidColumns(CyTable table) {

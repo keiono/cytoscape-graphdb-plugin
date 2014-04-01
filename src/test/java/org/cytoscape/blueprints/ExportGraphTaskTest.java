@@ -313,7 +313,7 @@ public class ExportGraphTaskTest {
 		File f = new File("./src/test/resources/" + file);
 		SIFNetworkReader snvp = new SIFNetworkReader(new FileInputStream(f),
 				layouts, viewFactory, netFactory, this.networkManager,
-				this.rootNetworkManager, this.cyApplicationManager);
+				this.rootNetworkManager);
 		new TaskIterator(snvp);
 		snvp.run(taskMonitor);
 
